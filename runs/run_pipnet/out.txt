@@ -1,0 +1,2 @@
+Log dir:  ./runs/run_pipnet
+Device used:  cpu with id []
