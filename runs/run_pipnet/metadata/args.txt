@@ -1,10 +1,10 @@
-dataset: 'CUB-200-2011'
+dataset: 'mri_scans'
 validation_size: 0.0
 net: 'convnext_tiny_26'
 batch_size: 64
 batch_size_pretrain: 128
-epochs: 60
-epochs_pretrain: 10
+epochs: 50
+epochs_pretrain: 1
 optimizer: 'Adam'
 lr: 0.05
 lr_block: 0.0005

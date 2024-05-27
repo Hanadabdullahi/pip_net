@@ -17,10 +17,31 @@ from shutil import copy
 import matplotlib.pyplot as plt
 from copy import deepcopy
 
-#hej
+"""dataset='CUB-200-2011', 
+    validation_size=0.0, 
+    net='convnext_tiny_26', 
+    batch_size=64, batch_size_pretrain=128,
+    epochs=60,
+    epochs_pretrain=10, 
+    optimizer='Adam',
+    lr=0.05, 
+    lr_block=0.0005, 
+    lr_net=0.0005,
+    weight_decay=0.0, 
+    disable_cuda=False, 
+    log_dir='./runs/run_pipnet',
+    num_features=0, 
+    image_size=224, 
+    state_dict_dir_net='', 
+    freeze_epochs=10, 
+    dir_for_saving_images='visualization_results','
+    disable_pretrained=False, weighted_loss=False, 
+    seed=1, gpu_ids='', num_workers=8, bias=False, extra_test_image_folder='./experiments')
+    """
+print("hej")
 
-def run_pipnet(args=None):
-
+def run_pipnet(args):
+    print("den är inne i en funktion")
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
     random.seed(args.seed)
@@ -61,7 +82,8 @@ def run_pipnet(args=None):
      
     # Log which device was actually used
     print("Device used: ", device, "with id", device_ids, flush=True)
-    
+    #ALLT OVANFÖR ÄR CUDA, UNDER ÄR DATAHANTERING
+    #----------------------------------------------------------------------------------------------------------------------------------
     # Obtain the dataset and dataloaders
     trainloader, trainloader_pretraining, trainloader_normal, trainloader_normal_augment, projectloader, testloader, test_projectloader, classes = get_dataloaders(args, device)
     if len(classes)<=20:
@@ -352,23 +374,30 @@ def run_pipnet(args=None):
                 print(args.dataset, "- OOD", ood_dataset, "class threshold ID fraction (FPR) with percent",percent,":", id_fraction, flush=True)                
 
     print("Done!", flush=True)
-
+print("hej")
 if __name__ == '__main__':
+    print("hej")
     args = get_args()
     torch.manual_seed(args.seed)
+    print(args)
     torch.cuda.manual_seed_all(args.seed)
     random.seed(args.seed)
+    print("hej")
     np.random.seed(args.seed)
+    print("hej")
+    
     print_dir = os.path.join(args.log_dir,'out.txt')
     tqdm_dir = os.path.join(args.log_dir,'tqdm.txt')
+    print("hej")
     if not os.path.isdir(args.log_dir):
         os.mkdir(args.log_dir)
-    
+    run_pipnet(args)
+    print("what")
     sys.stdout.close()
     sys.stderr.close()
     sys.stdout = open(print_dir, 'w')
     sys.stderr = open(tqdm_dir, 'w')
-    run_pipnet(args)
+    print(args)
     
     sys.stdout.close()
     sys.stderr.close()

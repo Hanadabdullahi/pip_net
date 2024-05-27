@@ -15,7 +15,7 @@ def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser('Train a PIP-Net')
     parser.add_argument('--dataset',
                         type=str,
-                        default='CUB-200-2011',
+                        default='mri_scans',
                         help='Data set on PIP-Net should be trained')
     parser.add_argument('--validation_size',
                         type=float,
@@ -35,11 +35,11 @@ def get_args() -> argparse.Namespace:
                         help='Batch size when pretraining the prototypes (first training stage)')
     parser.add_argument('--epochs',
                         type=int,
-                        default=60,
+                        default=50,
                         help='The number of epochs PIP-Net should be trained (second training stage)')
     parser.add_argument('--epochs_pretrain',
                         type=int,
-                        default = 10,
+                        default = 1,
                         help='Number of epochs to pre-train the prototypes (first training stage). Recommended to train at least until the align loss < 1'
                         )
     parser.add_argument('--optimizer',

@@ -10,7 +10,7 @@ from typing import Tuple, Dict
 from torch import Tensor
 import random
 from sklearn.model_selection import train_test_split
-
+#I DONT KNOW WHAT THE AUGMENT THING DOES BUT I HAVE REMOVED, MIGHT BE IMPORTANT LATER ON
 def get_data(args: argparse.Namespace): 
     """
     Load the proper dataset based on the parsed arguments
@@ -20,12 +20,20 @@ def get_data(args: argparse.Namespace):
     np.random.seed(args.seed)
     if args.dataset =='CUB-200-2011':     
         return get_birds(True, './data/CUB_200_2011/dataset/train_crop', './data/CUB_200_2011/dataset/train', './data/CUB_200_2011/dataset/test_crop', args.image_size, args.seed, args.validation_size, './data/CUB_200_2011/dataset/train', './data/CUB_200_2011/dataset/test_full')
+    
     if args.dataset == 'pets':
         return get_pets(True, './data/PETS/dataset/train','./data/PETS/dataset/train','./data/PETS/dataset/test', args.image_size, args.seed, args.validation_size)
+    
+    if args.dataset == 'mri_scans':
+        print("hej")
+        return get_mri_scans(True, '/Users/hanadabdullahi/Downloads/PriMIA-master/data/train', '/Users/hanadabdullahi/Downloads/PriMIA-master/datatest', args.image_size, args.seed, args.validation_size)
+    
     if args.dataset == 'partimagenet': #use --validation_size of 0.2
         return get_partimagenet(True, './data/partimagenet/dataset/all', './data/partimagenet/dataset/all', None, args.image_size, args.seed, args.validation_size) 
+    
     if args.dataset == 'CARS':
         return get_cars(True, './data/cars/dataset/train', './data/cars/dataset/train', './data/cars/dataset/test', args.image_size, args.seed, args.validation_size)
+    
     if args.dataset == 'grayscale_example':
         return get_grayscale(True, './data/train', './data/train', './data/test', args.image_size, args.seed, args.validation_size)
     raise Exception(f'Could not load data set, data set "{args.dataset}" not found!')
@@ -178,6 +186,21 @@ def create_datasets(transform1, transform2, transform_no_augment, num_channels:i
         trainset_pretraining = None
     
     return trainset, trainset_pretraining, trainset_normal, trainset_normal_augment, projectset, testset, testset_projection, classes, num_channels, train_indices, torch.LongTensor(targets)
+def get_mri_scans(augment:bool, train_dir:str, project_dir: str, test_dir:str, img_size: int, seed:int, validation_size:float):
+    """
+    Load MRI scan dataset with specified transformations.
+    """
+    mean = (0.485, 0.456, 0.406)
+    std = (0.229, 0.224, 0.225)
+    normalize = transforms.Normalize(mean=mean,std=std)
+    transform_no_augment = transforms.Compose([
+                            transforms.Resize(size=(img_size, img_size)),
+                            transforms.ToTensor(),
+                            normalize
+                        ])
+    transform1 = transform_no_augment    
+    transform2 = transform_no_augment 
+    return create_datasets(transform1, transform2, transform_no_augment, 3, train_dir, project_dir, test_dir, seed, validation_size)
 
 def get_pets(augment:bool, train_dir:str, project_dir: str, test_dir:str, img_size: int, seed:int, validation_size:float): 
     mean = (0.485, 0.456, 0.406)
