@@ -9,6 +9,9 @@ import torchvision.transforms as transforms
 from typing import Tuple, Dict
 from torch import Tensor
 import random
+import medmnist
+from medmnist import PneumoniaMNIST
+
 from sklearn.model_selection import train_test_split
 #I DONT KNOW WHAT THE AUGMENT THING DOES BUT I HAVE REMOVED, MIGHT BE IMPORTANT LATER ON
 def get_data(args: argparse.Namespace): 
@@ -18,6 +21,7 @@ def get_data(args: argparse.Namespace):
     torch.manual_seed(args.seed)
     random.seed(args.seed)
     np.random.seed(args.seed)
+    print(args.validation_size)
     if args.dataset =='CUB-200-2011':     
         return get_birds(True, './data/CUB_200_2011/dataset/train_crop', './data/CUB_200_2011/dataset/train', './data/CUB_200_2011/dataset/test_crop', args.image_size, args.seed, args.validation_size, './data/CUB_200_2011/dataset/train', './data/CUB_200_2011/dataset/test_full')
     
@@ -25,8 +29,7 @@ def get_data(args: argparse.Namespace):
         return get_pets(True, './data/PETS/dataset/train','./data/PETS/dataset/train','./data/PETS/dataset/test', args.image_size, args.seed, args.validation_size)
     
     if args.dataset == 'mri_scans':
-        print("hej")
-        return get_mri_scans(True, '/Users/hanadabdullahi/Downloads/PriMIA-master/data/train', '/Users/hanadabdullahi/Downloads/PriMIA-master/datatest', args.image_size, args.seed, args.validation_size)
+        return get_mri_scans(True, '/Users/hanadabdullahi/Downloads/organized_pneumoniamnist/train','/Users/hanadabdullahi/Downloads/organized_pneumoniamnist/train' ,'/Users/hanadabdullahi/Downloads/organized_pneumoniamnist/test', args.image_size, args.seed, args.validation_size)
     
     if args.dataset == 'partimagenet': #use --validation_size of 0.2
         return get_partimagenet(True, './data/partimagenet/dataset/all', './data/partimagenet/dataset/all', None, args.image_size, args.seed, args.validation_size) 
@@ -42,9 +45,9 @@ def get_dataloaders(args: argparse.Namespace, device):
     """
     Get data loaders
     """
+    print("dataloader time")
     # Obtain the dataset
     trainset, trainset_pretraining, trainset_normal, trainset_normal_augment, projectset, testset, testset_projection, classes, num_channels, train_indices, targets = get_data(args)
-    
     # Determine if GPU should be used
     cuda = not args.disable_cuda and torch.cuda.is_available()
     to_shuffle = True
@@ -87,7 +90,8 @@ def get_dataloaders(args: argparse.Namespace, device):
                                             drop_last=True
                                             )
                                         
-    else:        
+    else:  
+        print(f"Detta print statement säger att de både trainload")      
         trainloader_pretraining = torch.utils.data.DataLoader(trainset,
                                             batch_size=pretrain_batchsize,
                                             shuffle=to_shuffle,
@@ -200,6 +204,7 @@ def get_mri_scans(augment:bool, train_dir:str, project_dir: str, test_dir:str, i
                         ])
     transform1 = transform_no_augment    
     transform2 = transform_no_augment 
+    print("inne i get_mri")
     return create_datasets(transform1, transform2, transform_no_augment, 3, train_dir, project_dir, test_dir, seed, validation_size)
 
 def get_pets(augment:bool, train_dir:str, project_dir: str, test_dir:str, img_size: int, seed:int, validation_size:float): 
@@ -363,11 +368,11 @@ def get_grayscale(augment:bool, train_dir:str, project_dir: str, test_dir:str, i
     return create_datasets(transform1, transform2, transform_no_augment, 3, train_dir, project_dir, test_dir, seed, validation_size)
 
 class TwoAugSupervisedDataset(torch.utils.data.Dataset):
-    r"""Returns two augmentation and no labels."""
+    """Returns two augmentations of the same image and the target label."""
     def __init__(self, dataset, transform1, transform2):
         self.dataset = dataset
         self.classes = dataset.classes
-        if type(dataset) == torchvision.datasets.folder.ImageFolder:
+        if isinstance(dataset, torchvision.datasets.ImageFolder):
             self.imgs = dataset.imgs
             self.targets = dataset.targets
         else:
@@ -375,15 +380,24 @@ class TwoAugSupervisedDataset(torch.utils.data.Dataset):
             self.imgs = list(zip(dataset._image_files, dataset._labels))
         self.transform1 = transform1
         self.transform2 = transform2
-        
 
     def __getitem__(self, index):
+        # Fetch the image and the label
         image, target = self.dataset[index]
-        image = self.transform1(image)
-        return self.transform2(image), self.transform2(image), target
+        
+        # First transformation (should ensure image is a PIL Image at this point)
+        if self.transform1:
+            image1 = self.transform1(image)
+        
+        # Second transformation (should apply only if the image is not already a tensor)
+        if self.transform2:
+            image2 = self.transform2(image)
+        
+        return image1, image2, target
 
     def __len__(self):
         return len(self.dataset)
+
 
 # function copied from https://pytorch.org/vision/stable/_modules/torchvision/transforms/autoaugment.html#TrivialAugmentWide (v0.12) and adapted
 class TrivialAugmentWideNoColor(transforms.TrivialAugmentWide):

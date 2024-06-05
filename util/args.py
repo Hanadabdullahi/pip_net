@@ -19,7 +19,7 @@ def get_args() -> argparse.Namespace:
                         help='Data set on PIP-Net should be trained')
     parser.add_argument('--validation_size',
                         type=float,
-                        default=0.,
+                        default=0,
                         help='Split between training and validation set. Can be zero when there is a separate test or validation directory. Should be between 0 and 1. Used for partimagenet (e.g. 0.2)')
     parser.add_argument('--net',
                         type=str,
@@ -31,7 +31,7 @@ def get_args() -> argparse.Namespace:
                         help='Batch size when training the model using minibatch gradient descent. Batch size is multiplied with number of available GPUs')
     parser.add_argument('--batch_size_pretrain',
                         type=int,
-                        default=128,
+                        default=64,
                         help='Batch size when pretraining the prototypes (first training stage)')
     parser.add_argument('--epochs',
                         type=int,
@@ -71,7 +71,7 @@ def get_args() -> argparse.Namespace:
                         help='The directory in which train progress should be logged')
     parser.add_argument('--num_features',
                         type=int,
-                        default = 0,
+                        default = 10,
                         help='Number of prototypes. When zero (default) the number of prototypes is the number of output channels of backbone. If this value is set, then a 1x1 conv layer will be added. Recommended to keep 0, but can be increased when number of classes > num output channels in backbone.')
     parser.add_argument('--image_size',
                         type=int,

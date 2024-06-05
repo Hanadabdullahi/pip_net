@@ -1,0 +1,1 @@
+epoch,test_top1_acc,test_top5_acc,almost_sim_nonzeros,local_size_all_classes,almost_nonzeros_pooled,num_nonzero_prototypes,mean_train_acc,mean_train_loss_during_epoch

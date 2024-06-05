@@ -86,26 +86,12 @@ def run_pipnet(args):
     #----------------------------------------------------------------------------------------------------------------------------------
     # Obtain the dataset and dataloaders
     trainloader, trainloader_pretraining, trainloader_normal, trainloader_normal_augment, projectloader, testloader, test_projectloader, classes = get_dataloaders(args, device)
-    """_summary_
-    trainloader används
-    trainloader_prettraining används inte? den va none så tror att det är bara att mata in
-    classes löser sig av sig självt på något sätt, men kan alltid skriva över den och kolla om det funkar
-    TRAINLOADER NORMAL OCH AUGMENT ANVÄNDS INTE, SKRIV ÖVER DEM
-    
-    """
-    print(trainloader)
-    print(trainloader_pretraining)
-    if trainloader_pretraining == trainloader:
-        print(True)
-    else:
-        print(False)
-    
     if len(classes)<=20:
         if args.validation_size == 0.:
             print("Classes: ", testloader.dataset.class_to_idx, flush=True)
         else:
             print("Classes: ", str(classes), flush=True)
-    #tror inte att detta nedan var ett problem
+    
     # Create a convolutional network based on arguments and add 1x1 conv layer
     feature_net, add_on_layers, pool_layer, classification_layer, num_prototypes = get_network(len(classes), args)
    
@@ -120,7 +106,7 @@ def run_pipnet(args):
                     )
     net = net.to(device=device)
     net = nn.DataParallel(net, device_ids = device_ids)    
-    #tror inte att detta heller är ett problem
+    
     optimizer_net, optimizer_classifier, params_to_freeze, params_to_train, params_backbone = get_optimizer_nn(net, args)   
 
     # Initialize or load model

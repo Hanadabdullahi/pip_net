@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import torch.optim
 import torch.utils.data
 import math
+from sklearn.metrics import roc_auc_score
 
 def train_pipnet(net, train_loader, optimizer_net, optimizer_classifier, scheduler_net, scheduler_classifier, criterion, epoch, nr_epochs, device, pretrain=False, finetune=False, progress_prefix: str = 'Train Epoch'):
 
@@ -21,6 +22,8 @@ def train_pipnet(net, train_loader, optimizer_net, optimizer_classifier, schedul
     # Store info about the procedure
     train_info = dict()
     total_loss = 0.
+    all_preds = []  # Initialize list to store all predictions
+    all_labels = []  # Initialize list to store all true labels     
     total_acc = 0.
 
     iters = len(train_loader)
@@ -74,6 +77,10 @@ def train_pipnet(net, train_loader, optimizer_net, optimizer_classifier, schedul
             optimizer_classifier.step()   
             scheduler_classifier.step(epoch - 1 + (i/iters))
             lrs_class.append(scheduler_classifier.get_last_lr()[0])
+                # Collect predictions and labels for AUC computatio
+            probabilities = torch.softmax(out.detach(), dim=1)
+            all_preds.append(probabilities.cpu())
+            all_labels.append(ys.cpu())
      
         if not finetune:
             optimizer_net.step()
@@ -94,6 +101,13 @@ def train_pipnet(net, train_loader, optimizer_net, optimizer_classifier, schedul
                     net.module._classification.bias.copy_(torch.clamp(net.module._classification.bias.data, min=0.))  
     train_info['train_accuracy'] = total_acc/float(i+1)
     train_info['loss'] = total_loss/float(i+1)
+    if not pretrain:
+    # Concatenate all predictions and labels from batches
+        all_preds = torch.cat(all_preds, dim=0).numpy()  # Ensure concatenation along the batch axis
+        all_labels = torch.cat(all_labels, dim=0).numpy()
+        auc_score = roc_auc_score(all_labels, all_preds, multi_class='ovr')
+        print(f"AUC Score: {auc_score:.3f}")
+        train_info['auc_score'] = auc_score
     train_info['lrs_net'] = lrs_net
     train_info['lrs_class'] = lrs_class
     
